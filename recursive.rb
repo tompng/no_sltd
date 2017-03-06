@@ -12,17 +12,18 @@ def hoge i
   a+1
 end
 
-@result = nil
-@requests = []
 def recursive &block
+  unless @requests
+    return start &block
+  end
   f = Fiber.new &block
   @requests << f
   Fiber.yield :continue
   @result
 end
 
-
 def start &block
+  @requests = []
   f = Fiber.new{block.call}
   @requests << f
   until @requests.empty? do
@@ -34,9 +35,11 @@ def start &block
       @requests.pop
     end
   end
+  @result
+ensure
+  @requests = nil
+  @result = nil
 end
 
-start do
-  p hoge 20000
-end
+p hoge 20000
 p hoge2 20000
