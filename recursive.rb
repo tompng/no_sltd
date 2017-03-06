@@ -1,49 +1,51 @@
 require 'pry'
 
 module StackLevelSuperdeep
-  def self.requests
-    Thread.current[:requests]
-  end
+  CONTINUE = Object.new
+  THREAD_LOCAL_KEY = :stack_level_superdeep_runner
+  class Runner
+    attr_reader :result
+    def initialize
+      @fibers = []
+    end
 
-  def self.requests= val
-    Thread.current[:requests] = val
-  end
+    def << fiber
+      @fibers << fiber
+    end
 
-  def self.result
-    Thread.current[:result]
-  end
+    def start &block
+      f = Fiber.new { block.call }
+      self << f
+      until @fibers.empty? do
+        f = @fibers.last
+        next unless f
+        res = f.resume
+        if res != CONTINUE
+          @result = res
+          @fibers.pop
+        end
+      end
+      @result
+    end
 
-  def self.result= val
-    Thread.current[:result] = val
+    def self.execute &block
+      runner = Runner.new
+      Thread.current[THREAD_LOCAL_KEY] = runner
+      runner.start &block
+    ensure
+      Thread.current[THREAD_LOCAL_KEY] = nil
+    end
+
+    def self.current
+      Thread.current[THREAD_LOCAL_KEY]
+    end
   end
 
   def self.recursive &block
-    unless requests
-      return start &block
-    end
-    f = Fiber.new &block
-    requests << f
-    Fiber.yield :continue
-    result
-  end
-
-  def self.start &block
-    self.requests = []
-    f = Fiber.new{block.call}
-    requests << f
-    until requests.empty? do
-      f = requests.last
-      next unless f
-      res = f.resume
-      if res != :continue
-        self.result = res
-        requests.pop
-      end
-    end
-    result
-  ensure
-    self.requests = nil
-    self.result = nil
+    return Runner.execute(&block) unless Runner.current
+    Runner.current << Fiber.new(&block)
+    Fiber.yield CONTINUE
+    Runner.current.result
   end
 end
 
@@ -66,5 +68,5 @@ def fib_err a, memo={0 => 0, 1 => 1}
 end
 
 raise unless 100.times.all?{|i|fib_ok(i)==fib_err(i)}
-p fib_ok(10000) #=> 2090桁の数字
+p fib_ok(10000).to_s.size #=> 2090
 p fib_err(10000) #=> stack level too deep
