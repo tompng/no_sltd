@@ -1,5 +1,5 @@
 require 'pry'
-
+require 'benchmark'
 module StackLevelSuperdeep
   CONTINUE = Object.new
   THREAD_LOCAL_KEY = :stack_level_superdeep_runner
@@ -7,6 +7,7 @@ module StackLevelSuperdeep
     attr_reader :result
     def initialize
       @fibers = []
+      @stack_level = 0
     end
 
     def << fiber
@@ -14,8 +15,7 @@ module StackLevelSuperdeep
     end
 
     def start &block
-      f = Fiber.new { block.call }
-      self << f
+      self << Fiber.new { block.call }
       until @fibers.empty? do
         f = @fibers.last
         next unless f
@@ -28,21 +28,35 @@ module StackLevelSuperdeep
       @result
     end
 
+    def direct_callable?
+      if @stack_level < 128
+        @stack_level += 1
+        true
+      else
+        @stack_level = 0
+        false
+      end
+    end
+
     def self.execute &block
       runner = Runner.new
       Thread.current[THREAD_LOCAL_KEY] = runner
+      $HOGE=runner
       runner.start &block
     ensure
       Thread.current[THREAD_LOCAL_KEY] = nil
+      $HOGE=nil
     end
 
     def self.current
       Thread.current[THREAD_LOCAL_KEY]
+      $HOGE
     end
   end
 
   def self.recursive &block
     return Runner.execute(&block) unless Runner.current
+    return block.call if Runner.current.direct_callable?
     Runner.current << Fiber.new(&block)
     Fiber.yield CONTINUE
     Runner.current.result
@@ -66,6 +80,19 @@ def fib_err a, memo={0 => 0, 1 => 1}
   memo[a-2] ||= fib_err a-2, memo
   memo[a-1] + memo[a-2]
 end
+
+def sum n
+  return 1 if n == 1
+  sum(n-1) + n
+end
+
+def sum_ok n
+  return 1 if n == 1
+  recursive{sum_ok(n-1)} + n
+end
+
+p Benchmark.measure{p sum_ok 20000}.real
+p Benchmark.measure{p sum_ok 50000}.real
 
 raise unless 100.times.all?{|i|fib_ok(i)==fib_err(i)}
 p fib_ok(10000).to_s.size #=> 2090
