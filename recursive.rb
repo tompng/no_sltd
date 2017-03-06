@@ -53,11 +53,12 @@ module StackLevelSuperdeep
   end
 
   def self.recursive &block
-    return Runner.execute(&block) unless Runner.current
-    return block.call if Runner.current.direct_callable?
-    Runner.current << Fiber.new(&block)
+    runner = Runner.current
+    return Runner.execute(&block) unless runner
+    return block.call if runner.direct_callable?
+    runner << Fiber.new(&block)
     Fiber.yield CONTINUE
-    Runner.current.result
+    runner.result
   end
 end
 
@@ -78,6 +79,7 @@ def sum_ok n
   recursive{sum_ok(n-1)} + n
 end
 
+p Benchmark.measure{p sum_err 10000}.real
 p Benchmark.measure{p sum_ok 10000}.real
 p Benchmark.measure{p sum_ok 40000}.real
 #p Benchmark.measure{p sum_err 40000}.real #=> stack level too deep
