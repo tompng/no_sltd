@@ -22,14 +22,14 @@ def fib_safe a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
   a1 = recursive { fib_safe a-1, memo }
   a2 = recursive { fib_safe a-2, memo }
-  memo[a] ||= a1 + a2
+  memo[a] = a1 + a2
 end
 
 def fib a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
   a1 = fib a-1, memo
   a2 = fib a-2, memo
-  memo[a] ||= a1 + a2
+  memo[a] = a1 + a2
 end
 
 raise unless 100.times.all?{|i|fib_safe(i)==fib(i)}
