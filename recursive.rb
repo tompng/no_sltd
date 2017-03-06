@@ -30,7 +30,7 @@ module StackLevelSuperdeep
     end
 
     def direct_callable?
-      if @stack_level < 128
+      if @stack_level < 64
         @stack_level += 1
         true
       else
@@ -68,9 +68,9 @@ end
 
 # test
 
-def sum n
+def sum_err n
   return 1 if n == 1
-  sum(n-1) + n
+  sum_err(n-1) + n
 end
 
 def sum_ok n
@@ -80,6 +80,7 @@ end
 
 p Benchmark.measure{p sum_ok 10000}.real
 p Benchmark.measure{p sum_ok 40000}.real
+#p Benchmark.measure{p sum_err 40000}.real #=> stack level too deep
 p Benchmark.measure{p sum_ok 160000}.real
 
 def fib_ok a, memo={0 => 0, 1 => 1}
