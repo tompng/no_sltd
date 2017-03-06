@@ -3,6 +3,12 @@ require 'benchmark'
 module StackLevelSuperdeep
   CONTINUE = Object.new
   THREAD_LOCAL_KEY = :stack_level_superdeep_runner
+
+  def self.fiber_safe_thread_local
+    @thread_locals ||= {}
+    @thread_locals[Thread.current.__id__] ||= {}
+  end
+
   class Runner
     attr_reader :result
     def initialize
@@ -40,17 +46,14 @@ module StackLevelSuperdeep
 
     def self.execute &block
       runner = Runner.new
-      Thread.current[THREAD_LOCAL_KEY] = runner
-      $HOGE=runner
+      StackLevelSuperdeep.fiber_safe_thread_local[THREAD_LOCAL_KEY] = runner
       runner.start &block
     ensure
-      Thread.current[THREAD_LOCAL_KEY] = nil
-      $HOGE=nil
+      StackLevelSuperdeep.fiber_safe_thread_local[THREAD_LOCAL_KEY] = nil
     end
 
     def self.current
-      Thread.current[THREAD_LOCAL_KEY]
-      $HOGE
+      StackLevelSuperdeep.fiber_safe_thread_local[THREAD_LOCAL_KEY]
     end
   end
 
