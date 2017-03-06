@@ -1,32 +1,54 @@
 require 'pry'
 
-def recursive &block
-  unless @requests
-    return start &block
+module StackLevelSuperdeep
+  def self.requests
+    Thread.current[:requests]
   end
-  f = Fiber.new &block
-  @requests << f
-  Fiber.yield :continue
-  @result
+
+  def self.requests= val
+    Thread.current[:requests] = val
+  end
+
+  def self.result
+    Thread.current[:result]
+  end
+
+  def self.result= val
+    Thread.current[:result] = val
+  end
+
+  def self.recursive &block
+    unless requests
+      return start &block
+    end
+    f = Fiber.new &block
+    requests << f
+    Fiber.yield :continue
+    result
+  end
+
+  def self.start &block
+    self.requests = []
+    f = Fiber.new{block.call}
+    requests << f
+    until requests.empty? do
+      f = requests.last
+      next unless f
+      res = f.resume
+      if res != :continue
+        self.result = res
+        requests.pop
+      end
+    end
+    result
+  ensure
+    self.requests = nil
+    self.result = nil
+  end
 end
 
-def start &block
-  @requests = []
-  f = Fiber.new{block.call}
-  @requests << f
-  until @requests.empty? do
-    f = @requests.last
-    next unless f
-    res = f.resume
-    if res != :continue
-      @result = res
-      @requests.pop
-    end
-  end
-  @result
-ensure
-  @requests = nil
-  @result = nil
+def recursive &block
+  StackLevelSuperdeep.recursive &block
 end
 
 def fib_ok a, memo={0 => 0, 1 => 1}
