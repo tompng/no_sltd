@@ -69,36 +69,36 @@ end
 
 # test
 
-def sum_err n
+def sum n
   return 1 if n == 1
-  sum_err(n-1) + n
+  sum(n-1) + n
 end
 
-def sum_ok n
+def sum_safe n
   return 1 if n == 1
-  recursive{sum_ok(n-1)} + n
+  recursive{sum_safe(n-1)} + n
 end
 
-p Benchmark.measure{p sum_err 10000}.real
-p Benchmark.measure{p sum_ok 10000}.real
-p Benchmark.measure{p sum_ok 40000}.real
-#p Benchmark.measure{p sum_err 40000}.real #=> stack level too deep
-p Benchmark.measure{p sum_ok 160000}.real
+p Benchmark.measure{p sum 10000}.real
+p Benchmark.measure{p sum_safe 10000}.real
+p Benchmark.measure{p sum_safe 40000}.real
+#p Benchmark.measure{p sum 40000}.real #=> stack level too deep
+p Benchmark.measure{p sum_safe 160000}.real
 
-def fib_ok a, memo={0 => 0, 1 => 1}
+def fib_safe a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
-  memo[a-1] ||= recursive { fib_ok a-1, memo }
-  memo[a-2] ||= recursive { fib_ok a-2, memo }
+  memo[a-1] ||= recursive { fib_safe a-1, memo }
+  memo[a-2] ||= recursive { fib_safe a-2, memo }
   memo[a-1] + memo[a-2]
 end
 
-def fib_err a, memo={0 => 0, 1 => 1}
+def fib a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
-  memo[a-1] ||= fib_err a-1, memo
-  memo[a-2] ||= fib_err a-2, memo
+  memo[a-1] ||= fib a-1, memo
+  memo[a-2] ||= fib a-2, memo
   memo[a-1] + memo[a-2]
 end
 
-raise unless 100.times.all?{|i|fib_ok(i)==fib_err(i)}
-p fib_ok(100000).to_s.size #=> 20899
-p fib_err(100000) #=> stack level too deep
+raise unless 100.times.all?{|i|fib_safe(i)==fib(i)}
+p fib_safe(100000).to_s.size #=> 20899
+p fib(100000) #=> stack level too deep
