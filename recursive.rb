@@ -6,10 +6,7 @@ end
 
 def hoge i
   return i if i<=1
-  request i-1
-  Fiber.yield :continue
-  a = get
-
+  a = request i-1
   # p i, a
   # request i-2
   # Fiber.yield :continue
@@ -25,11 +22,10 @@ def request a
     hoge a
   }
   @requests << f
-end
-
-def get
+  Fiber.yield :continue
   @result
 end
+
 
 def start &block
   f = Fiber.new{block.call}
