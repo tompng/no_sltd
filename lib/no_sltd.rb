@@ -1,6 +1,8 @@
-module StackLevelSuperdeep
+require "no_sltd/version"
+
+module NoSLTD
   CONTINUE = Object.new
-  THREAD_LOCAL_KEY = :stack_level_superdeep_runner
+  THREAD_LOCAL_KEY = :no_sltd_runner
 
   class Runner
     attr_reader :result
@@ -40,7 +42,7 @@ module StackLevelSuperdeep
     def self.execute &block
       runner = Runner.new
       Thread.current.thread_variable_set(THREAD_LOCAL_KEY, runner)
-      runner.start &block
+      runner.start(&block)
     ensure
       Thread.current.thread_variable_set(THREAD_LOCAL_KEY, nil)
     end
@@ -53,13 +55,38 @@ module StackLevelSuperdeep
   def self.recursive &block
     runner = Runner.current
     return Runner.execute(&block) unless runner
-    return block.call if runner.direct_callable?
+    return yield if runner.direct_callable?
     runner << Fiber.new(&block)
     Fiber.yield CONTINUE
     runner.result
   end
 end
 
-def recursive &block
-  StackLevelSuperdeep.recursive &block
+def no_sltd method_or_proc=nil, &block
+  raise '`no_sltd def func end`, `block = no_sltd -> {}` or `no_sltd { block.call }`' unless block_given? ^ !!method_or_proc
+  if block_given?
+    NoSLTD.recursive(&block)
+  elsif Proc === method_or_proc
+    lambda do |*a, &b|
+      NoSLTD.recursive { method_or_proc.call(*a, &b) }
+    end
+  else
+    if respond_to? :instance_method
+      original = instance_method method_or_proc
+      remove_method method_or_proc
+      define_method method_or_proc do |*a, &b|
+        NoSLTD.recursive do
+          original.bind(self).call(*a, &b)
+        end
+      end
+    else
+      original = method method_or_proc
+      eval "undef #{method_or_proc}"
+      define_method method_or_proc do |*a, &b|
+        NoSLTD.recursive do
+          original.call(*a, &b)
+        end
+      end
+    end
+  end
 end
