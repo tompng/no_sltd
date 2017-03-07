@@ -8,13 +8,12 @@ Simple way to avoid `stack level too deep`
 
 ```ruby
 # Gemfile
-gem 'no_sltd', github: 'tompng/no_sltd'
+gem 'no_sltd'
 ```
-<!--
+
 ```sh
 $ gem install no_sltd
 ```
--->
 
 ## Usage
 
@@ -25,6 +24,7 @@ end
 
 # ↓ just add `no_sltd` before `def`
 
+require 'no_sltd'
 no_sltd def my_recursive_func
   ...
 end
@@ -41,6 +41,7 @@ end
 
 # ↓ wrap the recursive function call with `no_sltd { }`
 
+require 'no_sltd'
 def my_recursive_func
   ...
   no_sltd { my_recursive_func }
