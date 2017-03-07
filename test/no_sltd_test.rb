@@ -69,10 +69,10 @@ class NoSLTDTest < Minitest::Test
   end
 
   def test_lambda
-    code = %(->(n){n.zero? ? 1 : n*fact.call(n-1)})
-    fact = no_sltd eval(code)
-    assert (1..5).map { |i| fact.call i } == [1, 2, 6, 24, 120]
-    assert !!fact.call(10000)
-    assert `ruby -e "fact=#{code};fact[10000]" 2>&1` =~ /SystemStackError/
+    code = %(->(n){n.zero? ? 0 : n+sum_up.call(n-1)})
+    sum_up = no_sltd eval(code)
+    assert (1..5).map { |i| sum_up.call i } == [1, 3, 6, 10, 15]
+    assert !!sum_up.call(100000)
+    assert `ruby -e "sum_up=#{code};sum_up[100000]" 2>&1` =~ /SystemStackError/
   end
 end
