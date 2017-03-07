@@ -1,4 +1,4 @@
-# NoSLTD
+# No Stack Level Too Deep
 
 [![Build Status](https://travis-ci.org/tompng/no_sltd.svg?branch=master)](https://travis-ci.org/tompng/no_sltd)
 
