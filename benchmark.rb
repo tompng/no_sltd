@@ -1,4 +1,4 @@
-require_relative 'stack_level_superdeep'
+require_relative 'lib/stack_level_super_deep'
 require 'pry'
 require 'benchmark'
 

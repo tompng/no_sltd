@@ -1,4 +1,6 @@
-module StackLevelSuperdeep
+require "stack_level_super_deep/version"
+
+module StackLevelSuperDeep
   CONTINUE = Object.new
   THREAD_LOCAL_KEY = :stack_level_superdeep_runner
 
@@ -40,7 +42,7 @@ module StackLevelSuperdeep
     def self.execute &block
       runner = Runner.new
       Thread.current.thread_variable_set(THREAD_LOCAL_KEY, runner)
-      runner.start &block
+      runner.start(&block)
     ensure
       Thread.current.thread_variable_set(THREAD_LOCAL_KEY, nil)
     end
@@ -53,7 +55,7 @@ module StackLevelSuperdeep
   def self.recursive &block
     runner = Runner.current
     return Runner.execute(&block) unless runner
-    return block.call if runner.direct_callable?
+    return yield if runner.direct_callable?
     runner << Fiber.new(&block)
     Fiber.yield CONTINUE
     runner.result
@@ -61,5 +63,5 @@ module StackLevelSuperdeep
 end
 
 def recursive &block
-  StackLevelSuperdeep.recursive &block
+  StackLevelSuperDeep.recursive(&block)
 end
