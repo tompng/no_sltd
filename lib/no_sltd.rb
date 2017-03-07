@@ -29,13 +29,13 @@ module NoSLTD
       @result
     end
 
-    def direct_callable?
-      if @stack_level < 64
-        @stack_level += 1
-        true
-      else
-        @stack_level = 0
-        false
+    def with_stack_level
+      level = @stack_level
+      @stack_level += 1
+      begin
+        yield level
+      ensure
+        @stack_level = level
       end
     end
 
@@ -55,10 +55,15 @@ module NoSLTD
   def self.recursive &block
     runner = Runner.current
     return Runner.execute(&block) unless runner
-    return yield if runner.direct_callable?
-    runner << Fiber.new(&block)
-    Fiber.yield CONTINUE
-    runner.result
+    runner.with_stack_level do |level|
+      if level % 64 != 0
+        yield
+      else
+        runner << Fiber.new(&block)
+        Fiber.yield CONTINUE
+        runner.result
+      end
+    end
   end
 end
 
