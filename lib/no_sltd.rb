@@ -71,22 +71,11 @@ def no_sltd method_or_proc=nil, &block
       NoSLTD.recursive { method_or_proc.call(*a, &b) }
     end
   else
-    if respond_to? :instance_method
-      original = instance_method method_or_proc
-      remove_method method_or_proc
-      define_method method_or_proc do |*a, &b|
-        NoSLTD.recursive do
-          original.bind(self).call(*a, &b)
-        end
-      end
-    else
-      original = method method_or_proc
-      eval "undef #{method_or_proc}"
-      define_method method_or_proc do |*a, &b|
-        NoSLTD.recursive do
-          original.call(*a, &b)
-        end
-      end
+    receiver = respond_to?(:instance_method) ? self : self.class
+    original = receiver.instance_method method_or_proc
+    receiver.send :remove_method, method_or_proc
+    receiver.send :define_method, method_or_proc do |*a, &b|
+      NoSLTD.recursive { original.bind(self).call(*a, &b) }
     end
   end
 end

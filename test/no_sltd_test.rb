@@ -76,17 +76,16 @@ class NoSLTDTest < Minitest::Test
     assert `ruby -e "sum_up=#{code};sum_up[100000]" 2>&1` =~ /SystemStackError/
   end
 
-  no_sltd def zig n
-    n.zero? ? 0 : zag(n-1)+2
-  end
-
-  no_sltd def zag n
-    n.zero? ? 0 : zig(n-1)+1
-  end
-
   def test_zigzag
+    no_sltd def zig n
+      n.zero? ? 0 : zag(n-1)+2
+    end
+
+    no_sltd def zag n
+      n.zero? ? 0 : zig(n-1)+1
+    end
+
     assert 10.times.map{|i|zig i} == [0,2,3,5,6,8,9,11,12,14]
     assert !!zig(100000)
   end
-
 end
