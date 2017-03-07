@@ -2,25 +2,12 @@ require "no_sltd/version"
 
 module NoSLTD
   THREAD_LOCAL_KEY = :no_sltd_stack_level
-
-  def self.with_stack_level
+  def self.recursive
     level = (Thread.current[THREAD_LOCAL_KEY] || 0)
     Thread.current[THREAD_LOCAL_KEY] = level + 1
-    begin
-      yield level
-    ensure
-      Thread.current[THREAD_LOCAL_KEY] = level
-    end
-  end
-
-  def self.recursive
-    with_stack_level do |level|
-      if level < 64
-        yield
-      else
-        Fiber.new { yield }.resume
-      end
-    end
+    out = level < 64 ? yield : Fiber.new { yield }.resume
+    Thread.current[THREAD_LOCAL_KEY] = level
+    out
   end
 end
 
