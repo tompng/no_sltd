@@ -1,5 +1,9 @@
 require 'test_helper'
 
+no_sltd def toplevel_func
+  toplevel_func if rand < 0.999
+end
+
 class NoSLTDTest < Minitest::Test
   def test_that_it_has_a_version_number
     refute_nil ::NoSLTD::VERSION
@@ -87,5 +91,9 @@ class NoSLTDTest < Minitest::Test
 
     assert 10.times.map{|i|zig i} == [0,2,3,5,6,8,9,11,12,14]
     assert !!zig(100000)
+  end
+
+  def test_toplevel
+    assert toplevel_func.nil?
   end
 end
