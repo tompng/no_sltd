@@ -29,14 +29,11 @@ class NoSLTDTest < Minitest::Test
     assert correct == correct.size.times.map { |i| fibonacci_memo2(i) }
   end
 
-  def test_no_sltd_method_and_block
-    n = 100000
-    assert fibonacci_memo(n) == fibonacci_memo2(n)
-  end
-
   def test_fibonacci_stack
     n = 100000
-    fibo = fibonacci_memo(n)
+    fibo = fibonacci_memo n
+    fibo2 = fibonacci_memo2 n
+    assert fibo == fibo2
     fibo_log = Math.log(fibo)
     a, b = (1+Math.sqrt(5))/2, (1-Math.sqrt(5))/2
     true_fibo_log = n*Math.log(a) + Math.log(1-(b/a)**n) - Math.log(5)/2
