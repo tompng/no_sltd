@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'stack_level_super_deep/version'
+require 'no_sltd/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "stack_level_super_deep"
-  spec.version       = StackLevelSuperDeep::VERSION
+  spec.name          = "no_sltd"
+  spec.version       = NoSLTD::VERSION
   spec.authors       = ["tompng"]
   spec.email         = ["tomoyapenguin@gmail.com"]
 
   spec.summary       = %q{Simple way to avoid stack level too deep}
   spec.description   = %q{Provides a simple way to avoid stack level too deep for recursive functions}
-  spec.homepage      = "https://github.com/tompng/stack_level_super_deep"
+  spec.homepage      = "https://github.com/tompng/no_sltd"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'

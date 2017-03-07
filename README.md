@@ -1,4 +1,4 @@
-# StackLevelSuperDeep
+# NoSLTD
 
 Simple way to avoid `stack level too deep`
 
@@ -6,11 +6,11 @@ Simple way to avoid `stack level too deep`
 
 ```ruby
 # Gemfile
-gem 'stack_level_super_deep', github: 'tompng/stack_level_super_deep'
+gem 'no_sltd', github: 'tompng/no_sltd'
 ```
 <!--
 ```sh
-$ gem install stack_level_super_deep
+$ gem install no_sltd
 ```
 -->
 
@@ -20,8 +20,8 @@ $ gem install stack_level_super_deep
 def my_recursive_func
   ...
 end
-# ↓ just add `recursive` before `def`
-recursive def my_recursive_func
+# ↓ just add `no_sltd` before `def`
+no_sltd def my_recursive_func
   ...
 end
 ```
@@ -34,10 +34,10 @@ def my_recursive_func
   my_recursive_func
   ...
 end
-# wrap the recursive function call with `recursive { }`
+# wrap the recursive function call with `no_sltd { }`
 def my_recursive_func
   ...
-  recursive { my_recursive_func }
+  no_sltd { my_recursive_func }
   ...
 end
 ```
@@ -51,7 +51,7 @@ def sum_up n
 end
 sum_up 100000 #=> stack level too deep
 # ↓↓↓↓
-recursive def sum_up n
+no_sltd def sum_up n
   return 1 if n == 1
   sum_up(n-1) + n
 end
@@ -65,7 +65,7 @@ def fibonacci a, memo={0 => 0, 1 => 1}
 end
 fibonacci 100000 #=> stack level too deep
 # ↓↓↓↓
-recursive def fibonacci a, memo={0 => 0, 1 => 1}
+no_sltd def fibonacci a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
   memo[a] = fibonacci(a-1, memo) + fibonacci(a-2, memo)
 end
@@ -78,15 +78,15 @@ fact = lambda do |n|
 end
 fact.call 10000 #=> stack level too deep
 
-# pass the proc to `recursive`
-fact = recursive ->(n) {
+# pass the proc to `no_sltd`
+fact = no_sltd ->(n) {
   n.zero? ? 1 : n * fact.call(n-1)
 }
 fact.call 10000 #=> 2846259680917054......
 
-# or wrap the recursive call with `recursive { }`
+# or wrap the recursive call with `no_sltd { }`
 fact = lambda do |n|
-  n.zero? ? 1 : n * recursive { fact.call(n-1) }
+  n.zero? ? 1 : n * no_sltd { fact.call(n-1) }
 end
 fact.call 10000 #=> 2846259680917054......
 ```
@@ -106,7 +106,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/stack_level_super_deep.
+Bug reports and pull requests are welcome on GitHub at https://github.com/tompng/no_sltd.
 
 
 ## License
