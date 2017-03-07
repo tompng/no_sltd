@@ -20,7 +20,9 @@ $ gem install no_sltd
 def my_recursive_func
   ...
 end
+
 # ↓ just add `no_sltd` before `def`
+
 no_sltd def my_recursive_func
   ...
 end
@@ -34,7 +36,9 @@ def my_recursive_func
   my_recursive_func
   ...
 end
+
 # wrap the recursive function call with `no_sltd { }`
+
 def my_recursive_func
   ...
   no_sltd { my_recursive_func }
@@ -50,7 +54,9 @@ def sum_up n
   sum_up(n-1) + n
 end
 sum_up 100000 #=> stack level too deep
+
 # ↓↓↓↓
+
 no_sltd def sum_up n
   return 1 if n == 1
   sum_up(n-1) + n
@@ -64,7 +70,9 @@ def fibonacci a, memo={0 => 0, 1 => 1}
   memo[a] = fibonacci(a-1, memo) + fibonacci(a-2, memo)
 end
 fibonacci 100000 #=> stack level too deep
+
 # ↓↓↓↓
+
 no_sltd def fibonacci a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
   memo[a] = fibonacci(a-1, memo) + fibonacci(a-2, memo)
