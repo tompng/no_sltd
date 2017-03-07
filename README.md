@@ -17,43 +17,78 @@ $ gem install stack_level_super_deep
 ## Usage
 
 ```ruby
-x = func a, b, c
-# ↓ just wrap it with `recursive { }`
-x = recursive { func a, b, c }
+def my_recursive_func
+  ...
+end
+# ↓ just add `recursive` before `def`
+recursive def my_recursive_func
+  ...
+end
+```
+
+or
+
+```ruby
+def my_recursive_func
+  ...
+  my_recursive_func
+  ...
+end
+# wrap the recursive function call with `recursive { }`
+def my_recursive_func
+  ...
+  recursive { my_recursive_func }
+  ...
+end
 ```
 
 ### examples
 
 ```ruby
-def sumup n
+def sum_up n
   return 1 if n == 1
-  sumup(n-1) + n
+  sum_up(n-1) + n
 end
-sumup 100000 #=> stack level too deep
+sum_up 100000 #=> stack level too deep
 # ↓↓↓↓
-def sumup n
+recursive def sum_up n
   return 1 if n == 1
-  recursive { sumup(n-1) } + n
+  sum_up(n-1) + n
 end
-sumup 100000 #=> 5000050000
+sum_up 100000 #=> 5000050000
 ```
 
 ```ruby
 def fibonacci a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
-  a1 = fibonacci a-1, memo
-  a2 = fibonacci a-2, memo
-  memo[a] = a1 + a2
+  memo[a] = fibonacci(a-1, memo) + fibonacci(a-2, memo)
 end
 fibonacci 100000 #=> stack level too deep
 # ↓↓↓↓
-def fibonacci a, memo={0 => 0, 1 => 1}
+recursive def fibonacci a, memo={0 => 0, 1 => 1}
   return memo[a] if memo[a]
-  a1 = recursive { fibonacci a-1, memo }
-  a2 = recursive { fibonacci a-2, memo }
-  memo[a] = a1 + a2
+  memo[a] = fibonacci(a-1, memo) + fibonacci(a-2, memo)
 end
 fibonacci 100000 #=> 2597406934722172......
+```
+
+```ruby
+fact = lambda do |n|
+  n.zero? ? 1 : n * fact.call(n-1)
+end
+fact.call 10000 #=> stack level too deep
+
+# pass the proc to `recursive`
+fact = recursive ->(n) {
+  n.zero? ? 1 : n * fact.call(n-1)
+}
+fact.call 10000 #=> 2846259680917054......
+
+# or wrap the recursive call with `recursive { }`
+fact = lambda do |n|
+  n.zero? ? 1 : n * recursive { fact.call(n-1) }
+end
+fact.call 10000 #=> 2846259680917054......
 ```
 
 ### Pros
@@ -62,7 +97,6 @@ fibonacci 100000 #=> 2597406934722172......
 ### Cons
 - memory eater
 - slow
-
 
 ## Development
 

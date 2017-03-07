@@ -62,6 +62,31 @@ module StackLevelSuperDeep
   end
 end
 
-def recursive &block
-  StackLevelSuperDeep.recursive(&block)
+def recursive method_or_proc=nil, &block
+  raise '`recursive def func end` or `recursive { func }`' unless block_given? ^ !!method_or_proc
+  if block_given?
+    StackLevelSuperDeep.recursive(&block)
+  elsif Proc === method_or_proc
+    lambda do |*a, &b|
+      StackLevelSuperDeep.recursive { method_or_proc.call(*a, &b) }
+    end
+  else
+    if respond_to? :instance_method
+      original = instance_method method_or_proc
+      remove_method method_or_proc
+      define_method method_or_proc do |*a, &b|
+        StackLevelSuperDeep.recursive do
+          original.bind(self).call(*a, &b)
+        end
+      end
+    else
+      original = method method_or_proc
+      eval "undef #{method_or_proc}"
+      define_method method_or_proc do |*a, &b|
+        StackLevelSuperDeep.recursive do
+          original.call(*a, &b)
+        end
+      end
+    end
+  end
 end
